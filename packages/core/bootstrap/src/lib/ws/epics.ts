@@ -53,7 +53,7 @@ const deserializer = (message: any) => {
   try {
     return JSON.parse(message.data)
   } catch (e) {
-    logger.debug('WS: Message received with invalid format')
+    logger.error('WS: Message received with invalid format')
     return message
   }
 }
@@ -210,7 +210,7 @@ export const connectEpic: Epic<AnyAction, AnyAction, any, any> = (action$, state
           // start the current unsubscription timer
           const timeout$ = of(unsubscribe({ ...payload })).pipe(
             delay(config.subscriptionTTL),
-            tap(() => logger.info('WS: unsubscribe (inactive feed)', { payload: payload.subscriptionMsg})),
+            tap(() => logger.debug('WS: unsubscribe (inactive feed)', { payload: payload.subscriptionMsg})),
           )
           // if a re-subscription comes in before timeout emits, then we emit nothing
           // else we unsubscribe from the current subscription
@@ -318,31 +318,25 @@ export const metricsEpic: Epic<AnyAction, AnyAction, any, any> = (action$, state
       switch (action.type) {
         case connected.type:
           ws_connection_active.labels(connectionLabels(action.payload)).inc()
-          logger.info('WS: connected', { payload: action.payload })
           break
         case connectionError.type:
           ws_connection_errors.labels(connectionErrorLabels(action.payload)).inc()
-          logger.error('WS: connection_error', { payload: action.payload })
           break
         case disconnected.type:
           if (state.ws.connections.wasEverConnected[connectionLabels(action.payload).key]) {
             ws_connection_active.labels(connectionLabels(action.payload)).dec()
-            logger.info('WS: disconnected', { payload: action.payload })
           }
           break
         case subscribed.type:
           ws_subscription_total.labels(subscriptionLabels(action.payload)).inc()
           ws_subscription_active.labels(subscriptionLabels(action.payload)).inc()
-          logger.info('WS: subscribed', { payload: action.payload })
           break
         case subscriptionError.type:
           ws_subscription_errors.labels(subscriptionErrorLabels(action.payload)).inc()
-          logger.error('WS: subscription error', { payload: action.payload })
           break
         case unsubscribed.type: {
           if (state.ws.subscriptions[getSubsId(action.payload.subscriptionMsg)]?.wasEverActive) {
             ws_subscription_active.labels(subscriptionLabels(action.payload)).dec()
-            logger.info('WS: unsubscribed', { payload: action.payload })
           }
           break
         }
@@ -355,6 +349,62 @@ export const metricsEpic: Epic<AnyAction, AnyAction, any, any> = (action$, state
     filter(() => false), // do not duplicate events
   )
 
-export const rootEpic = combineEpics(connectEpic, metricsEpic)
+export const loggingEpic: Epic<AnyAction, AnyAction, any, any> = (action$, state$) =>
+  action$.pipe(
+    withLatestFrom(state$),
+    tap(([action, state]) => {
+      const connectionMeta = (payload: WSConfigPayload) => ({
+        url: payload.wsHandler.connection.url,
+        key: payload.config.connectionInfo.key
+      })
+      const subscriptionMeta = (payload: WSSubscriptionPayload) => ({
+        connection_key: payload.connectionInfo.key,
+        connection_url: payload.connectionInfo.url,
+        feed_id: getFeedId({ ...payload.input }),
+        subscription_key: getSubsId(payload.subscriptionMsg)
+      })
+      const messageMeta = (payload: WSMessagePayload) => ({
+        feed_id: getFeedId({ ...state.ws.subscriptions[action.payload.subscriptionKey]?.input }),
+        subscription_key: payload.subscriptionKey
+      })
+      // TODO: Uncomment with trace logging
+      // https://github.com/smartcontractkit/external-adapters-js/issues/504
+      /*const messageTrace = (payload: WSMessagePayload) => ({
+        request_input: state.ws.subscriptions[action.payload.subscriptionKey]?.input,
+        payload: payload.message
+      })*/
+
+      switch (action.type) {
+        case connected.type:
+          logger.info(`WS: New connection`, connectionMeta(action.payload))
+          break
+        case connectionError.type:
+          logger.error(`WS: Connection error`, connectionMeta(action.payload))
+          break
+        case disconnected.type:
+          if (state.ws.connections.wasEverConnected[connectionMeta(action.payload).key]) {
+            logger.info('WS: Disconnected', connectionMeta(action.payload))
+          }
+          break
+        case subscribed.type:
+          logger.info('WS: Subscribed', subscriptionMeta(action.payload))
+          break
+        case subscriptionError.type:
+          logger.error(`WS: Subscription error`, subscriptionMeta(action.payload))
+          break
+        case unsubscribed.type:
+          logger.info(`WS: Unsubscribed`, subscriptionMeta(action.payload))
+          break
+        case messageReceived.type:
+          logger.debug('WS: Got message', messageMeta(action.payload))
+          // TODO: logger.trace('WS: Trace', messageTrace(action.payload))
+          break
+      }
+    }),
+    map(([action]) => action),
+    filter(() => false), // do not duplicate events
+  )
+
+export const rootEpic = combineEpics(connectEpic, metricsEpic, loggingEpic)
 
 export const epicMiddleware = createEpicMiddleware()

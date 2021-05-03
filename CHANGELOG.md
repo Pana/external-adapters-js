@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 
+- Made improvements to WS logging with clearer distinction between dev environment and `LOG_LEVEL=DEBUG`.
+
 ### Removed
 
 - Removed custom `tradingeconomics-stream` as WS support is not included into `tradingeconomics` adapter

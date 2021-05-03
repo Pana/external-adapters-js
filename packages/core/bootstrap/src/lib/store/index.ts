@@ -12,7 +12,7 @@ import {
 import logger from 'redux-logger'
 import { nanoid } from '@reduxjs/toolkit'
 import { composeWithDevTools } from 'remote-redux-devtools'
-import { isDebug, isDebugLogLevel } from '../util'
+import { isDebug } from '../util'
 
 export const asAction = <T>() => (p: T) => ({
   payload: toActionPayload<T>(p),
@@ -34,7 +34,7 @@ export function configureStore(
   preloadedState: PreloadedState<any> = {},
   middleware: Middleware<unknown, any, Dispatch<AnyAction>>[] = [],
 ): Store {
-  if (isDebug() || isDebugLogLevel()) middleware.push(logger)
+  if (isDebug()) middleware.push(logger)
   const middlewareEnhancer = applyMiddleware(...middleware)
 
   const enhancers = [middlewareEnhancer]
