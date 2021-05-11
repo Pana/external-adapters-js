@@ -210,7 +210,16 @@ From the moment the subscription is confirmed, the adapter will start receiving 
 
 | Required? |                Name                |                                                                             Description                                                                              | Options | Defaults to |
 | :-------: | :--------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----: | :---------: |
+|           |        `WS_CONNECTION_KEY`         |                                                                                                                                                                      |         |  undefined  |
+|           |       `WS_CONNECTION_LIMIT`        |                                                                                                                                                                      |         |     `1`     |
+|           |        `WS_CONNECTION_TTL`         |                                                                                                                                                                      |         |   `70000`   |
+|           |    `WS_CONNECTION_RETRY_LIMIT`     |                                                                                                                                                                      |         |     `3`     |
+|           |    `WS_CONNECTION_RETRY_DELAY`     |                                                                                                                                                                      |         |   `1000`    |
+|           |      `WS_SUBSCRIPTION_LIMIT`       |                                                                                                                                                                      |         |    `10`     |
 |           |       `WS_SUBSCRIPTION_TTL`        |            Subscription expiration time in ms. If no new incoming requests ask for this information during this time, the subscription will be cancelled.            |         |   `70000`   |
+|           |  `WS_SUBSCRIPTION_PRIORITY_LIST`   |                                                                                                                                                                      |         |    `[]`     |
 |           | `WS_SUBSCRIPTION_UNRESPONSIVE_TTL` | Unresponsive subscription expiration time in ms. If the adapter doesn't receive messages from an open subscription during this time, a resubscription will be tried. |         |   `70000`   |
+
+<!-- |           |  `EXPERIMENTAL_WS_ENABLED`  | Toggle usage of websockets. |         |   `false`   | -->
 
 \*For the websockets to be effective, **caching needs to be enabled**
