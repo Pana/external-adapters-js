@@ -210,7 +210,6 @@ From the moment the subscription is confirmed, the adapter will start receiving 
 
 | Required? |                Name                |                                                                             Description                                                                              | Options | Defaults to |
 | :-------: | :--------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----: | :---------: |
-|           |        `WS_CONNECTION_KEY`         |                                                                                                                                                                      |         |  undefined  |
 |           |       `WS_CONNECTION_LIMIT`        |                                                                                                                                                                      |         |     `1`     |
 |           |        `WS_CONNECTION_TTL`         |                                                                                                                                                                      |         |   `70000`   |
 |           |    `WS_CONNECTION_RETRY_LIMIT`     |                                                                                                                                                                      |         |     `3`     |
