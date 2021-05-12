@@ -18,9 +18,11 @@ export const withWebSockets = (
 
   const wsHandler = await makeWsHandler()
   const wsConfig = getWSConfig()
+  console.log(wsConfig, wsHandler)
   store.dispatch(connect({ config: wsConfig, wsHandler }))
 
   const subscriptionMsg = wsHandler.subscribe(input)
+  console.log(subscriptionMsg)
   if (!subscriptionMsg) return await execute(input)
   const { connectionInfo } = wsConfig
 
