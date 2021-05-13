@@ -1,8 +1,11 @@
 import { Requester } from '@chainlink/ea-bootstrap'
 import { Config } from '@chainlink/types'
 
+export const NAME = 'TIINGO'
+
 export const DEFAULT_ENDPOINT = 'eod'
 export const DEFAULT_BASE_URL = 'https://api.tiingo.com/tiingo/'
+export const DEFAULT_WS_API_ENDPOINT = 'wss://api.tiingo.com/crypto'
 
 export const makeConfig = (prefix?: string): Config => {
   const config = Requester.getDefaultConfig(prefix, true)
